@@ -6,35 +6,51 @@
     <!-- 顶部状态栏 -->
     <header class="top-bar">
       <div class="top-bar-left">
-        <div class="camera-mini" @click="toggleParentPanel">
+        <div class="camera-mini" @click="toggleParentPanel" :class="{ 'is-active': cameraActive }">
           <CameraPreview
             :canvas-width="48"
             :canvas-height="36"
             :active="cameraActive"
           />
-          <div v-if="!cameraActive" class="camera-off-icon">📷</div>
+          <div v-if="!cameraActive" class="camera-off-overlay">
+            <span class="camera-icon">📷</span>
+          </div>
+          <div v-if="cameraActive" class="camera-active-indicator"></div>
         </div>
       </div>
+      
       <div class="top-bar-center">
-        <span class="app-title">👶 咿呀学语</span>
+        <div class="app-title-wrapper">
+          <span class="app-icon">👶</span>
+          <h1 class="app-title">咿呀学语</h1>
+        </div>
       </div>
+      
       <div class="top-bar-right">
-        <span class="time-display">{{ currentTime }}</span>
+        <div class="time-display">
+          <span class="time-icon">🕐</span>
+          <span class="time-text">{{ currentTime }}</span>
+        </div>
       </div>
     </header>
 
+    <!-- 场景背景装饰 -->
+    <div class="scene-background" :class="currentScene"></div>
+
     <!-- 中部场景区域 -->
     <main class="scene-area">
-      <transition name="scene-fade" mode="out-in">
+      <transition name="scene-transition" mode="out-in">
         <AnimalPark
           v-if="currentScene === SceneType.ANIMAL_PARK"
           :gesture-state="gestureState"
           @animal-selected="handleAnimalSelected"
+          key="animal"
         />
         <FamilyMembers
           v-else
           :speech-enabled="speechEnabled"
           @member-matched="handleMemberMatched"
+          key="family"
         />
       </transition>
     </main>
@@ -42,18 +58,22 @@
     <!-- 底部控制栏 -->
     <footer class="bottom-bar">
       <div class="bottom-left">
-        <div class="scene-switch-hint">
+        <div class="gesture-hint" :class="{ 'is-active': gestureEnabled }">
           <span class="hint-icon">👋</span>
-          <span class="hint-text">挥手切换场景</span>
+          <span class="hint-text">挥手切换</span>
         </div>
       </div>
+      
       <div class="bottom-center">
         <button class="scene-toggle-btn" @click="switchScene">
-          {{ currentScene === SceneType.ANIMAL_PARK ? '🐱 动物乐园' : '👨‍👩‍👧 家庭成员' }}
+          <span class="btn-icon">{{ currentScene === SceneType.ANIMAL_PARK ? '🐱' : '👨‍👩‍👧' }}</span>
+          <span class="btn-text">{{ currentScene === SceneType.ANIMAL_PARK ? '动物乐园' : '家庭成员' }}</span>
+          <span class="btn-arrow">›</span>
         </button>
       </div>
+      
       <div class="bottom-right">
-        <div class="speech-status" :class="{ active: speechState.isListening }">
+        <div class="speech-status" :class="{ 'is-active': speechState.isListening }">
           <span class="mic-icon">{{ speechState.isListening ? '🎤' : '🔇' }}</span>
           <span class="status-text">{{ speechState.isListening ? '正在听' : '语音关闭' }}</span>
         </div>
@@ -61,9 +81,15 @@
     </footer>
 
     <!-- 手势反馈气泡 -->
-    <transition name="bubble-fade">
+    <transition name="bubble-transition">
       <div v-if="gestureFeedback" class="gesture-bubble">
-        <span>{{ gestureFeedback }}</span>
+        <div class="bubble-content">
+          <span class="bubble-icon">{{ gestureFeedback.icon }}</span>
+          <span class="bubble-text">{{ gestureFeedback.text }}</span>
+        </div>
+        <div class="bubble-particles">
+          <span v-for="n in 6" :key="n" class="particle" :style="particleStyle(n)">✨</span>
+        </div>
       </div>
     </transition>
 
@@ -121,7 +147,7 @@ const speechState = reactive<SpeechState>({
 // UI 状态
 const showParentPanel = ref(false)
 const currentTime = ref('')
-const gestureFeedback = ref('')
+const gestureFeedback = ref<{ icon: string; text: string } | null>(null)
 
 // 模块实例
 let gestureRecognizer: GestureRecognizer | null = null
@@ -137,11 +163,21 @@ function switchScene() {
 }
 
 // 显示手势反馈
-function showGestureFeedback(text: string) {
-  gestureFeedback.value = text
+function showGestureFeedback(feedback: { icon: string; text: string }) {
+  gestureFeedback.value = feedback
   setTimeout(() => {
-    gestureFeedback.value = ''
-  }, 1500)
+    gestureFeedback.value = null
+  }, 2000)
+}
+
+// 粒子样式
+function particleStyle(n: number) {
+  const angle = (n * 60) * (Math.PI / 180)
+  const distance = 50 + Math.random() * 30
+  return {
+    transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 20}px)`,
+    animationDelay: `${n * 0.05}s`,
+  }
 }
 
 // 切换家长面板
@@ -157,17 +193,16 @@ function handleGesture(state: GestureState) {
 
   switch (state.currentGesture) {
     case GestureType.FIST:
-      showGestureFeedback('✊ 暂停')
+      showGestureFeedback({ icon: '✊', text: '暂停' })
       break
     case GestureType.OPEN_PALM:
-      showGestureFeedback('🖐️ 播放')
+      showGestureFeedback({ icon: '🖐️', text: '播放' })
       break
     case GestureType.WAVING:
       switchScene()
-      showGestureFeedback('👋 切换场景!')
+      showGestureFeedback({ icon: '👋', text: '切换场景!' })
       break
     case GestureType.POINTING:
-      // 由场景组件处理
       break
   }
 }
@@ -206,9 +241,12 @@ watch(cameraActive, async (active) => {
   if (active && videoRef.value) {
     try {
       gestureRecognizer = new GestureRecognizer()
+      const canvas = document.createElement('canvas')
+      canvas.width = 320
+      canvas.height = 240
       await gestureRecognizer.init(
         videoRef.value,
-        document.querySelector('canvas')!,
+        canvas,
         handleGesture
       )
     } catch (e) {
@@ -232,7 +270,6 @@ watch(speechEnabled, (enabled) => {
 
 // 生命周期
 onMounted(() => {
-  // 初始化语音
   speechManager = new SpeechManager()
   speechManager.init(handleSpeechResult, handleSpeechStateChange)
   
@@ -240,14 +277,12 @@ onMounted(() => {
     speechManager.startListening()
   }
 
-  // 初始化时间
   updateTime()
   timeTimer = setInterval(updateTime, 30000)
 
-  // 3秒后自动启动摄像头
   setTimeout(() => {
     cameraActive.value = true
-  }, 1000)
+  }, 1500)
 })
 
 onUnmounted(() => {
@@ -268,17 +303,51 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+/* 场景背景装饰 */
+.scene-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  transition: all 0.5s ease;
+}
+
+.scene-background.ANIMAL_PARK {
+  background: linear-gradient(180deg, 
+    rgba(232, 245, 233, 0.3) 0%, 
+    rgba(200, 230, 201, 0.3) 50%, 
+    rgba(165, 214, 167, 0.3) 100%
+  );
+}
+
+.scene-background.FAMILY_MEMBERS {
+  background: linear-gradient(180deg, 
+    rgba(255, 243, 224, 0.3) 0%, 
+    rgba(255, 224, 178, 0.3) 50%, 
+    rgba(255, 204, 128, 0.3) 100%
+  );
+}
+
 /* 顶部状态栏 */
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
-  background: var(--color-white);
-  box-shadow: 0 2px 8px var(--color-shadow);
+  padding: 12px 16px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(255, 107, 107, 0.08);
   z-index: 10;
-  height: 56px;
+  height: 64px;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 107, 107, 0.06);
 }
 
 .top-bar-left,
@@ -299,24 +368,52 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.app-title {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--color-primary);
+.app-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+.app-icon {
+  font-size: 28px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.app-title {
+  font-size: 22px;
+  font-weight: 700;
+  background: var(--color-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
+/* 摄像头预览 */
 .camera-mini {
   position: relative;
-  width: 48px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 52px;
+  height: 40px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid var(--color-secondary);
-  background: #eee;
+  border: 2px solid rgba(78, 205, 196, 0.3);
+  background: #f0f0f0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.camera-off-icon {
+.camera-mini:hover {
+  transform: scale(1.05);
+  border-color: var(--color-secondary);
+}
+
+.camera-mini.is-active {
+  border-color: var(--color-secondary);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+}
+
+.camera-off-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -325,14 +422,47 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.2);
 }
 
+.camera-icon {
+  font-size: 18px;
+}
+
+.camera-active-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-secondary);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* 时间显示 */
 .time-display {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-light);
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--color-surface-warm);
+  border-radius: var(--radius-full);
+  transition: all 0.3s ease;
+}
+
+.time-display:hover {
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.time-icon {
+  font-size: 14px;
+}
+
+.time-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 /* 中部场景区域 */
@@ -340,6 +470,7 @@ onUnmounted(() => {
   flex: 1;
   overflow: hidden;
   position: relative;
+  z-index: 1;
 }
 
 /* 底部控制栏 */
@@ -347,17 +478,23 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
-  background: var(--color-white);
-  box-shadow: 0 -2px 8px var(--color-shadow);
+  padding: 12px 16px;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.85) 0%, 
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 -2px 12px rgba(255, 107, 107, 0.08);
   z-index: 10;
-  height: 56px;
+  height: 72px;
   flex-shrink: 0;
+  border-top: 1px solid rgba(255, 107, 107, 0.06);
 }
 
 .bottom-left,
 .bottom-right {
-  width: 120px;
+  width: 100px;
 }
 
 .bottom-right {
@@ -371,12 +508,31 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.scene-switch-hint {
+.gesture-hint {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--font-size-xs);
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-surface-warm);
+  border-radius: var(--radius-full);
+  font-size: 12px;
   color: var(--color-text-light);
+  transition: all 0.3s ease;
+}
+
+.gesture-hint.is-active {
+  color: var(--color-primary);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.gesture-hint.is-active .hint-icon {
+  animation: wave 0.5s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  75% { transform: rotate(-15deg); }
 }
 
 .hint-icon {
@@ -384,36 +540,84 @@ onUnmounted(() => {
 }
 
 .scene-toggle-btn {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary-gradient);
   color: white;
   border: none;
-  border-radius: var(--radius-xl);
-  padding: 8px 20px;
-  font-size: var(--font-size-md);
+  border-radius: var(--radius-2xl);
+  padding: 10px 24px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.scene-toggle-btn:hover::before {
+  left: 100%;
+}
+
+.scene-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45);
 }
 
 .scene-toggle-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+}
+
+.btn-icon {
+  font-size: 20px;
+}
+
+.btn-text {
+  letter-spacing: 1px;
+}
+
+.btn-arrow {
+  font-size: 18px;
+  margin-left: 4px;
+  transition: transform 0.3s ease;
+}
+
+.scene-toggle-btn:hover .btn-arrow {
+  transform: translateX(3px);
 }
 
 .speech-status {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--font-size-xs);
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-warm);
+  font-size: 12px;
   color: var(--color-text-light);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--color-background);
+  transition: all 0.3s ease;
 }
 
-.speech-status.active {
+.speech-status.is-active {
   color: var(--color-primary);
   background: rgba(255, 107, 107, 0.1);
+}
+
+.speech-status.is-active .mic-icon {
+  animation: pulse 1s ease-in-out infinite;
 }
 
 .mic-icon {
@@ -426,37 +630,110 @@ onUnmounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 16px 32px;
-  border-radius: var(--radius-xl);
-  font-size: var(--font-size-lg);
-  font-weight: 600;
   z-index: 100;
   pointer-events: none;
 }
 
-/* 过渡动画 */
-.scene-fade-enter-active,
-.scene-fade-leave-active {
-  transition: all 0.3s ease;
-}
-.scene-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.95);
-}
-.scene-fade-leave-to {
-  opacity: 0;
-  transform: scale(1.05);
+.bubble-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 16px 32px;
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.25);
+  border: 2px solid var(--color-primary);
 }
 
-.bubble-fade-enter-active,
-.bubble-fade-leave-active {
-  transition: all 0.3s ease;
+.bubble-icon {
+  font-size: 36px;
+  animation: bounce 0.5s ease-in-out infinite;
 }
-.bubble-fade-enter-from,
-.bubble-fade-leave-to {
+
+.bubble-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.bubble-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.particle {
+  position: absolute;
+  font-size: 16px;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.8);
+  animation: particleFloat 1s ease-out forwards;
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: var(--transform) scale(0.5);
+  }
+}
+
+/* 过渡动画 */
+.scene-transition-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.scene-transition-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.scene-transition-enter-from {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+}
+
+.scene-transition-leave-to {
+  opacity: 0;
+  transform: scale(1.05) translateY(-20px);
+}
+
+.bubble-transition-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bubble-transition-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.bubble-transition-enter-from {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+}
+
+.bubble-transition-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* 响应式优化 */
+@media (max-width: 360px) {
+  .top-bar,
+  .bottom-bar {
+    padding: 10px 12px;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .scene-toggle-btn {
+    padding: 8px 18px;
+    font-size: 14px;
+  }
 }
 </style>
