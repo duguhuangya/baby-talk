@@ -37,6 +37,7 @@
         :class="{
           'is-matched': matchedMember?.id === member.id,
           'is-highlighted': highlightedId === member.id,
+          'tv-focused': currentIndex === index,
         }"
         :style="{
           animationDelay: index * 0.08 + 's',
@@ -93,6 +94,7 @@ import { SpeechManager } from '@/utils/speech'
 
 const props = defineProps<{
   speechEnabled: boolean
+  currentIndex?: number
 }>()
 
 const emit = defineEmits<{
@@ -247,6 +249,14 @@ function handleSpeechResult(text: string, matchedKeyword: string | null) {
     transcriptText.value = ''
   }, 3000)
 }
+
+defineExpose({
+  selectByIndex: (index: number) => {
+    if (index >= 0 && index < members.length) {
+      matchMember(members[index])
+    }
+  }
+})
 
 // 初始化
 onMounted(() => {

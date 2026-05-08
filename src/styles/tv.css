@@ -1,0 +1,381 @@
+/* ========================================
+   TV端大屏适配样式
+   针对智能电视和显示器优化
+   ======================================== */
+
+/* TV端断点检测 */
+@media (min-width: 1280px) and (min-height: 720px) {
+  :root {
+    /* 放大字号基础值 */
+    --font-size-base: 18px;
+    --font-size-lg: 32px;
+    --font-size-xl: 48px;
+    --font-size-2xl: 64px;
+    --font-size-3xl: 80px;
+    
+    /* 放大间距 */
+    --space-md: 24px;
+    --space-lg: 32px;
+    --space-xl: 48px;
+    --space-2xl: 64px;
+    
+    /* 放大圆角 */
+    --radius-xl: 32px;
+    --radius-2xl: 48px;
+  }
+  
+  /* TV端基础样式 */
+  html, body {
+    font-size: var(--font-size-base);
+  }
+  
+  /* 顶栏放大 */
+  .top-bar {
+    height: 80px !important;
+    padding: 16px 32px !important;
+  }
+  
+  .app-icon {
+    font-size: 40px !important;
+  }
+  
+  .app-title {
+    font-size: 32px !important;
+    letter-spacing: 4px;
+  }
+  
+  .camera-mini {
+    width: 80px !important;
+    height: 60px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  .time-display {
+    padding: 10px 20px !important;
+  }
+  
+  .time-text {
+    font-size: 20px !important;
+  }
+  
+  /* 底栏放大 */
+  .bottom-bar {
+    height: 90px !important;
+    padding: 16px 32px !important;
+  }
+  
+  .gesture-hint {
+    padding: 10px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  .scene-toggle-btn {
+    padding: 16px 40px !important;
+    font-size: 22px !important;
+    border-radius: var(--radius-2xl) !important;
+  }
+  
+  .btn-icon {
+    font-size: 28px !important;
+  }
+  
+  .speech-status {
+    padding: 10px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  /* 动物卡片放大 */
+  .animal-grid {
+    gap: 32px !important;
+    max-width: 1400px !important;
+  }
+  
+  .animal-card {
+    min-height: 280px !important;
+    padding: 32px 20px !important;
+    border-radius: var(--radius-2xl) !important;
+    border-width: 4px !important;
+  }
+  
+  .animal-emoji {
+    font-size: 80px !important;
+  }
+  
+  .animal-name {
+    font-size: 28px !important;
+  }
+  
+  .animal-sound-hint {
+    font-size: 18px !important;
+    padding: 6px 16px !important;
+  }
+  
+  /* 家庭成员卡片放大 */
+  .member-grid {
+    gap: 32px !important;
+    max-width: 1400px !important;
+  }
+  
+  .member-card {
+    min-height: 280px !important;
+    padding: 32px 20px !important;
+    border-radius: var(--radius-2xl) !important;
+    border-width: 4px !important;
+  }
+  
+  .member-emoji {
+    font-size: 80px !important;
+  }
+  
+  .member-name {
+    font-size: 28px !important;
+  }
+  
+  .alias-tag {
+    font-size: 16px !important;
+    padding: 4px 12px !important;
+  }
+  
+  /* 场景提示放大 */
+  .scene-hint {
+    padding: 14px 32px !important;
+    font-size: 18px !important;
+    border-radius: var(--radius-2xl) !important;
+  }
+  
+  .hint-icon {
+    font-size: 26px !important;
+  }
+  
+  /* 详情卡片放大 */
+  .animal-detail-card,
+  .match-card {
+    padding: 56px 80px !important;
+    border-radius: var(--radius-2xl) !important;
+  }
+  
+  .detail-emoji,
+  .match-emoji {
+    font-size: 140px !important;
+  }
+  
+  .detail-name,
+  .match-name {
+    font-size: 48px !important;
+    letter-spacing: 6px;
+  }
+  
+  .detail-sound {
+    font-size: 36px !important;
+    padding: 12px 32px !important;
+  }
+  
+  .detail-pronunciation {
+    font-size: 24px !important;
+    padding: 14px 28px !important;
+  }
+  
+  .match-encouragement {
+    font-size: 24px !important;
+    padding: 14px 32px !important;
+  }
+  
+  /* 手势反馈气泡放大 */
+  .bubble-content {
+    padding: 24px 48px !important;
+    border-radius: var(--radius-2xl) !important;
+    border-width: 3px !important;
+  }
+  
+  .bubble-icon {
+    font-size: 56px !important;
+  }
+  
+  .bubble-text {
+    font-size: 32px !important;
+  }
+  
+  /* 语音识别气泡放大 */
+  .transcript-bubble {
+    padding: 16px 36px !important;
+    font-size: 22px !important;
+  }
+  
+  .mic-icon-inline {
+    font-size: 32px !important;
+  }
+  
+  /* 家长面板放大 */
+  .parent-panel {
+    padding: 32px !important;
+  }
+  
+  .header-icon {
+    font-size: 64px !important;
+  }
+  
+  .header-title {
+    font-size: 36px !important;
+    letter-spacing: 4px;
+  }
+  
+  .panel-desc {
+    font-size: 18px !important;
+  }
+  
+  .section-title {
+    font-size: 22px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .setting-item {
+    padding: 20px 28px !important;
+    border-radius: var(--radius-xl) !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .setting-icon-wrapper {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 32px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  .setting-title {
+    font-size: 22px !important;
+  }
+  
+  .setting-desc {
+    font-size: 16px !important;
+  }
+  
+  .guide-item {
+    padding: 18px 24px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  .guide-visual {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .guide-emoji {
+    font-size: 36px !important;
+  }
+  
+  .guide-name {
+    font-size: 22px !important;
+  }
+  
+  .guide-desc {
+    font-size: 16px !important;
+  }
+  
+  .about-card {
+    padding: 28px !important;
+    border-radius: var(--radius-xl) !important;
+  }
+  
+  .about-icon {
+    font-size: 64px !important;
+  }
+  
+  .about-title {
+    font-size: 22px !important;
+  }
+  
+  .about-desc {
+    font-size: 16px !important;
+  }
+  
+  /* 摄像头预览放大 */
+  .camera-preview {
+    border-radius: var(--radius-lg) !important;
+  }
+  
+  .camera-active-badge {
+    padding: 4px 12px !important;
+  }
+  
+  .badge-text {
+    font-size: 10px !important;
+  }
+}
+
+/* 超大TV (4K) */
+@media (min-width: 1920px) {
+  :root {
+    --font-size-base: 20px;
+    --font-size-lg: 36px;
+    --font-size-xl: 56px;
+    --font-size-2xl: 72px;
+    --font-size-3xl: 96px;
+  }
+  
+  .animal-grid,
+  .member-grid {
+    max-width: 1600px !important;
+    gap: 40px !important;
+  }
+  
+  .animal-card,
+  .member-card {
+    min-height: 320px !important;
+  }
+}
+
+/* TV端禁用触摸高亮 */
+@media (min-width: 1280px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  /* TV端焦点样式 */
+  .focusable:focus {
+    outline: 4px solid #FFE66D;
+    outline-offset: 4px;
+  }
+  
+  /* TV端遥控器导航时的卡片样式 */
+  .tv-navigation .animal-card,
+  .tv-navigation .member-card {
+    transition: transform 0.2s ease, 
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+  }
+  
+  .tv-navigation .animal-card.tv-focused,
+  .tv-navigation .member-card.tv-focused {
+    transform: scale(1.08) !important;
+    border-color: #FFE66D !important;
+    box-shadow: 0 16px 48px rgba(255, 230, 109, 0.4) !important;
+  }
+}
+
+/* 横向大屏优化 */
+@media (min-aspect-ratio: 16/9) and (min-height: 720px) {
+  .scene-area {
+    padding: 24px 48px;
+  }
+  
+  .animal-grid,
+  .member-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    max-width: 70vw !important;
+  }
+}
+
+/* 竖屏模式（平板）优化 */
+@media (max-aspect-ratio: 1/1) and (min-height: 600px) {
+  .animal-grid,
+  .member-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+  
+  .animal-card,
+  .member-card {
+    min-height: 200px !important;
+  }
+}

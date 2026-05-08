@@ -44,6 +44,7 @@
         :class="{
           'is-pointed': pointedAnimalId === animal.id,
           'is-selected': selectedAnimal?.id === animal.id,
+          'tv-focused': currentIndex === index,
         }"
         :style="{
           animationDelay: index * 0.08 + 's',
@@ -82,6 +83,7 @@ import type { GestureState, Animal } from '@/types'
 
 const props = defineProps<{
   gestureState: GestureState
+  currentIndex?: number
 }>()
 
 const emit = defineEmits<{
@@ -172,6 +174,14 @@ function selectAnimal(animal: Animal) {
     }
   }, 4000)
 }
+
+defineExpose({
+  selectByIndex: (index: number) => {
+    if (index >= 0 && index < animals.length) {
+      selectAnimal(animals[index])
+    }
+  }
+})
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import 'vant/lib/index.css'
 import './styles/main.css'
+import './styles/tv.css'
 
 const app = createApp(App)
 app.mount('#app')

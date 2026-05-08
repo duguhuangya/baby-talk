@@ -38,19 +38,23 @@
     <div class="scene-background" :class="currentScene"></div>
 
     <!-- 中部场景区域 -->
-    <main class="scene-area">
+    <main class="scene-area" :class="{ 'tv-mode': isTVMode }">
       <transition name="scene-transition" mode="out-in">
         <AnimalPark
           v-if="currentScene === SceneType.ANIMAL_PARK"
           :gesture-state="gestureState"
+          :current-index="currentIndex"
           @animal-selected="handleAnimalSelected"
           key="animal"
+          ref="animalParkRef"
         />
         <FamilyMembers
           v-else
           :speech-enabled="speechEnabled"
+          :current-index="currentIndex"
           @member-matched="handleMemberMatched"
           key="family"
+          ref="familyMembersRef"
         />
       </transition>
     </main>
@@ -153,6 +157,94 @@ const gestureFeedback = ref<{ icon: string; text: string } | null>(null)
 let gestureRecognizer: GestureRecognizer | null = null
 let speechManager: SpeechManager | null = null
 let timeTimer: ReturnType<typeof setInterval> | null = null
+
+// TV遥控器导航状态
+const isTVMode = ref(false)
+const currentIndex = ref(0)
+const animalParkRef = ref<InstanceType<typeof AnimalPark> | null>(null)
+const familyMembersRef = ref<InstanceType<typeof FamilyMembers> | null>(null)
+let backspaceCount = 0
+let backspaceTimer: ReturnType<typeof setTimeout> | null = null
+
+// TV模式检测
+function checkTVMode() {
+  const width = window.innerWidth
+  const height = window.innerHeight
+  isTVMode.value = width >= 1280 || (width > height && width >= 1024)
+  
+  if (isTVMode.value) {
+    document.body.classList.add('tv-navigation')
+  } else {
+    document.body.classList.remove('tv-navigation')
+  }
+}
+
+// 处理遥控器按键
+function handleRemoteKey(e: KeyboardEvent) {
+  if (!isTVMode.value) return
+  
+  const key = e.key
+  
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(key)) {
+    e.preventDefault()
+  }
+  
+  switch (key) {
+    case 'ArrowUp':
+      if (currentIndex.value >= 3) {
+        currentIndex.value -= 3
+      }
+      break
+      
+    case 'ArrowDown':
+      if (currentIndex.value < 3) {
+        currentIndex.value += 3
+      }
+      break
+      
+    case 'ArrowLeft':
+      if (currentIndex.value % 3 > 0) {
+        currentIndex.value--
+      }
+      break
+      
+    case 'ArrowRight':
+      if (currentIndex.value % 3 < 2) {
+        currentIndex.value++
+      }
+      break
+      
+    case 'Enter':
+      if (currentScene.value === SceneType.ANIMAL_PARK) {
+        animalParkRef.value?.selectByIndex(currentIndex.value)
+      } else {
+        familyMembersRef.value?.selectByIndex(currentIndex.value)
+      }
+      break
+      
+    case 'Backspace':
+      backspaceCount++
+      
+      if (backspaceTimer) {
+        clearTimeout(backspaceTimer)
+      }
+      
+      if (backspaceCount >= 5) {
+        backspaceCount = 0
+        toggleParentPanel()
+      } else {
+        backspaceTimer = setTimeout(() => {
+          backspaceCount = 0
+        }, 2000)
+      }
+      break
+      
+    case 'MediaPlayPause':
+    case 'MediaPlay':
+      switchScene()
+      break
+  }
+}
 
 // 切换场景
 function switchScene() {
@@ -283,12 +375,19 @@ onMounted(() => {
   setTimeout(() => {
     cameraActive.value = true
   }, 1500)
+  
+  checkTVMode()
+  window.addEventListener('resize', checkTVMode)
+  window.addEventListener('keydown', handleRemoteKey)
 })
 
 onUnmounted(() => {
   gestureRecognizer?.stop()
   speechManager?.destroy()
   if (timeTimer) clearInterval(timeTimer)
+  if (backspaceTimer) clearTimeout(backspaceTimer)
+  window.removeEventListener('resize', checkTVMode)
+  window.removeEventListener('keydown', handleRemoteKey)
 })
 </script>
 
